@@ -1,0 +1,27 @@
+{
+  "name": "webworkers",
+  "version": "1.0.0",
+  "description": "testing web workers",
+  "main": "index.js",
+  "scripts": {
+    "dev": "browser-sync start --server 'app' --files 'app'",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lao-tseu-is-alive/webworkers.git"
+  },
+  "keywords": [
+    "webworkers",
+    "javascript"
+  ],
+  "author": "lao.tseu.is.alive@gmail.com",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/lao-tseu-is-alive/webworkers/issues"
+  },
+  "homepage": "https://github.com/lao-tseu-is-alive/webworkers#readme",
+  "dependencies": {
+    "bootstrap": "^4.0.0-beta.2"
+  }
+}
