@@ -7,11 +7,20 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css"
           integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+    <style>
+        body {
+            padding-top: 5rem;
+        }
+        .starter-template {
+            padding: 3rem 1.5rem;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
 
 <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
-    <a class="navbar-brand" href="#">Navbar</a>
+    <a class="navbar-brand" href="/">WebWorkers</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault"
             aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -19,41 +28,29 @@
 
     <div class="collapse navbar-collapse" id="navbarsExampleDefault">
         <ul class="navbar-nav mr-auto">
-            <li class="nav-item active">
-                <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="#">Link</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link disabled" href="#">Disabled</a>
-            </li>
-            <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="http://example.com" id="dropdown01" data-toggle="dropdown"
-                   aria-haspopup="true" aria-expanded="false">Dropdown</a>
-                <div class="dropdown-menu" aria-labelledby="dropdown01">
-                    <a class="dropdown-item" href="#">Action</a>
-                    <a class="dropdown-item" href="#">Another action</a>
-                    <a class="dropdown-item" href="#">Something else here</a>
-                </div>
-            </li>
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
+                </li>
+                <li class="nav-item  active">
+                    <a class="nav-link" href="index_withoutWebWorker.html">Testing without web worker</a>
+                </li>
+            </ul>
         </ul>
-        <form class="form-inline my-2 my-lg-0">
-            <input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
-            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-        </form>
     </div>
 </nav>
 
-<main role="main" class="container">
+<main role="main" class="container-fluid">
     <div class="starter-template">
-        <h1>Testing webworkers</h1>
+        <h3>Testing webworkers</h3>
         <p class="lead">
-            Select an image to load
+            <label for="input">Select an image to load :</label>
+            <input type="file" accept="image/*" name="input" id="input"/>
+            <span id="imgsize">No image selected...</span>
         </p>
         <div>
-            <input type="file" accept="image/*" name="input" id="input"/>
-            <label for="input">Choose an image file :</label>
+            <img src="FlyEarth500_Micael_Reynaud.gif">
+            <button id="cmdApplyFilter" disabled>applyFilter</button>
         </div>
         <div id="imgContainer">
             <canvas id="preview"></canvas>
@@ -73,63 +70,88 @@
         integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ"
         crossorigin="anonymous"></script>
 <script type="text/javascript">
-    const $input = document.getElementById('input')
-    const $preview = document.getElementById('preview')
-    const $imgContainer = document.getElementById('imgContainer')
-    let previewCtxt = $preview.getContext('2d')
-    let w = 0
-    let h = 0
-    //const fileReader = new FileReader()
-    const image = new Image()
+  const $input = document.getElementById('input')
+  const $preview = document.getElementById('preview')
+  const $imgsize = document.getElementById('imgsize')
+  const $cmdApplyFilter = document.getElementById('cmdApplyFilter')
+  let previewCtxt = $preview.getContext('2d')
+  let w = 0
+  let h = 0
+  //const fileReader = new FileReader()
+  const image = new Image()
 
-    $input.addEventListener('change', (e) => {
-        const file = e.target.files[0]
-        // https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/createImageBitmap
-        createImageBitmap(file)
-            .then((bitmap) => {
-                w = bitmap.width
-                h = bitmap.height
-                $preview.width = w
-                $preview.height = h
-                previewCtxt.drawImage(bitmap, 0, 0)
-                applyFilter(1, 1, 0.5)
-            })
-        //fileReader.readAsDataURL(file)
+  $input.addEventListener('change', (e) => {
+    const file = e.target.files[0]
+    console.log('File selected :',file)
+    var t0 = performance.now();
+    // https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/createImageBitmap
+    createImageBitmap(file)
+    .then((bitmap) => {
+      w = bitmap.width
+      h = bitmap.height
+      $imgsize.innerText = file.name + ' [w x h] = [' + w + ' x ' + h + ']'
+      $preview.width = w
+      $preview.height = h
+      console.log('## before first drawImage :')
+      previewCtxt.drawImage(bitmap, 0, 0)
+      var t1 = performance.now();
+      console.log("Loading and drawImage took " + Math.round(t1 - t0) + " milliseconds.");
+      $cmdApplyFilter.disabled = false
     })
+    //fileReader.readAsDataURL(file)
+  })
 
-    /* by using createImageBitmap we don't need this anymore
-    fileReader.addEventListener('load', (e) => {
-        const base64 = e.target.result
-        image.src = base64
-    })
+  $cmdApplyFilter.addEventListener('click', (e)=>{
+    console.log("++cmdApplyFilter click before applyFilter Call ");
+    let tbefore = performance.now();
+    applyFilter(1.1, 0.5, 1.1)
+    let tafter = performance.now();
+    console.log("++cmdApplyFilter click after applyFilter Call  took " + Math.round(tafter - tbefore) + " milliseconds.");
+  })
 
-    image.addEventListener('load', (e) => {
-        $preview.width = image.width
-        $preview.height = image.height
-        previewCtxt.drawImage(image, 0, 0)
-        //$imgContainer.appendChild(image)
-        applyFilter(1,1,0.5)
-    })
-    */
+  /* by using createImageBitmap we don't need this anymore
+  fileReader.addEventListener('load', (e) => {
+      const base64 = e.target.result
+      image.src = base64
+  })
 
-    function applyFilter(redFactor, greenFactor, blueFactor) {
-        const img = previewCtxt.getImageData(0, 0, w, h)
-        for (let y = 0; y < h; y++) { // for every row of pixel
-            for (let x = 0; x < w; x++) { // for every pixel in column
-                let index = (x + y * w) * 4 // RGBA bytes
-                let red = img.data[index]
-                let green = img.data[index + 1]
-                let blue = img.data[index + 2]
-                let alpha = img.data[index + 3]
-                // let's say we remove 50% of blue and 50 % of green
-                img.data[index] = img.data[index] * redFactor
-                img.data[index + 1] = img.data[index + 1] * greenFactor
-                img.data[index + 2] = img.data[index + 2] * blueFactor
-                img.data[index + 3] = img.data[index + 3]
-            }
-        }
-        previewCtxt.putImageData(img, 0, 0)
+  image.addEventListener('load', (e) => {
+      $preview.width = image.width
+      $preview.height = image.height
+      previewCtxt.drawImage(image, 0, 0)
+      //$imgContainer.appendChild(image)
+      applyFilter(1,1,0.5)
+  })
+  */
+
+  function applyFilter(redFactor, greenFactor, blueFactor) {
+    console.log('### Entering applyFilter :')
+    let t0 = performance.now();
+    const img = previewCtxt.getImageData(0, 0, w, h)
+    let t1 = performance.now();
+    console.log("--->getImageData took " + (t1 - t0) + " milliseconds.");
+    for (let y = 0; y < h; y++) { // for every row of pixel
+      for (let x = 0; x < w; x++) { // for every pixel in column
+        let index = (x + y * w) * 4 // RGBA bytes
+        let red = img.data[index]
+        let green = img.data[index + 1]
+        let blue = img.data[index + 2]
+        let alpha = img.data[index + 3]
+        // let's say we remove 50% of blue and 50 % of green
+        img.data[index] = img.data[index] * redFactor
+        img.data[index + 1] = img.data[index + 1] * greenFactor
+        img.data[index + 2] = img.data[index + 2] * blueFactor
+        img.data[index + 3] = img.data[index + 3]
+      }
     }
+    let t2 = performance.now();
+    console.log("---> double y,x loop to modifiy img took " + (t2 - t1) + " milliseconds.");
+    previewCtxt.putImageData(img, 0, 0)
+    let t3 = performance.now();
+    console.log("---> putImageData took " + (t3 - t2) + " milliseconds.");
+    console.log('### Exiting from applyFilter :')
+    console.log("---> Total time doing applyFilter took " + (t3 - t0) + " milliseconds.");
+  }
 
 
 </script>
